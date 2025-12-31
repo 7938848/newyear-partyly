@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>跨年终极版 · 伊犁纪念（合规版）</title>
+<meta name="description" content="跨年倒计时 · 中国·新疆·伊犁 特别版 — 浏览器合规版（须点击解锁）" />
+<style>
+  :root{
+    --bg1:#020316; --bg2:#07132a; --accent:#ffd54a; --muted:#9fb0d6;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto;overflow:hidden}
+  #stage{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  h1{margin:0;font-size:28px}
+  #count{font-size:48px;color:var(--accent);margin:8px 0}
+  #sub{font-size:14px;color:var(--muted);margin-bottom:8px}
+  .controls{position:absolute;top:10px;left:10px;z-index:150;display:flex;flex-direction:column;gap:8px}
+  .row{display:flex;gap:8px;align-items:center}
+  .select,button,input{border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff;padding:8px 10px}
+  #miniControls{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:150;display:flex;gap:8px}
+  canvas{position:fixed;inset:0;z-index:20;pointer-events:none} /* allow clicks through */
+  #unlockOverlay{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999;
+    background:linear-gradient(0deg, rgba(0,0,0,0.6), rgba(0,0,0,0.35));
+  }
+  #unlockBtn{
+    padding:18px 28px;border-radius:14px;border:none;background:var(--accent);color:#081026;font-weight:800;font-size:18px;
+  }
+  .portraitNotice{
+    display:none;
+    position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.92);color:#fff;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:20px;
+  }
+  .watermark{position:absolute;right:12px;bottom:12px;font-size:12px;color:rgba(255,255,255,0.28);z-index:160}
+  .debug{position:fixed;left:8px;right:8px;bottom:8px;max-height:140px;overflow:auto;background:rgba(0,0,0,0.45);padding:6px;border-radius:8px;font-size:12px;color:#fff;z-index:999}
+  @media (orientation:portrait){
+    .portraitNotice{display:flex}
+  }
+  @media(max-width:900px){ #count{font-size:36px} h1{font-size:22px} }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="controls" id="topControls" style="z-index:130">
+    <div class="row">
+      <label class="small">城市：</label>
+      <select id="tz" class="select">
+        <option value="Asia/Shanghai">北京 / 上海 (Asia/Shanghai)</option>
+        <option value="Asia/Tokyo">东京 (Asia/Tokyo)</option>
+        <option value="Europe/London">伦敦 (Europe/London)</option>
+        <option value="America/New_York">纽约 (America/New_York)</option>
+      </select>
+      <button id="refresh" class="select">刷新时区</button>
+    </div>
+
+    <div class="row" style="margin-top:8px">
+      <button id="playPause" class="select">播放 / 暂停</button>
+      <button id="next" class="select">下一首</button>
+      <button id="patternToggle" class="select">环/心/文字</button>
+    </div>
+
+    <div class="row" style="margin-top:8px">
+      <button id="fullscreen" class="select">全屏</button>
+      <button id="projection" class="select">投影模式</button>
+      <button id="savePoster" class="select">保存海报 / 分享</button>
+    </div>
+
+    <div class="row" style="margin-top:8px;align-items:center">
+      <label class="small">音量</label>
+      <input id="vol" type="range" min="0" max="1" step="0.01" value="0.6">
+      <label class="small" style="margin-left:6px">节奏灵敏</label>
+      <input id="sensitivity" type="range" min="0" max="4" step="0.1" value="1.2">
+    </div>
+  </div>
+
+  <h1 id="title">跨年 · 伊犁纪念派对</h1>
+  <div id="count">加载中…</div>
+  <div id="sub">先点击下方「进入派对」解锁音频与全屏，之后功能完全可用</div>
+
+  <div id="miniControls" style="z-index:130">
+    <button id="ringBtn" class="select">环形</button>
+    <button id="heartBtn" class="select">心形</button>
+    <input id="cityName" class="select" placeholder="城市名（用于海报/文字）" style="min-width:160px">
+    <button id="textBtn" class="select">文字烟花（伊犁）</button>
+  </div>
+
+  <div class="watermark">Made with ♥ by PartyBot</div>
+
+  <canvas id="fx"></canvas>
+  <canvas id="textMask" style="display:none"></canvas>
+
+  <audio id="player" crossorigin="anonymous"></audio>
+
+  <div id="unlockOverlay">
+    <div style="text-align:center">
+      <div style="margin-bottom:18px;color:#fff;font-size:18px">准备好了吗？点击进入派对模式</div>
+      <button id="unlockBtn">进入派对 · 解锁音频 & 全屏</button>
+    </div>
+  </div>
+
+  <div class="portraitNotice" id="portraitNotice">
+    为获得最佳体验，请将手机横屏并点击“进入派对”。
+  </div>
+
+  <div class="debug" id="debugBox">调试信息：<br></div>
+</div>
+
+<script>
+/* ============================
+  浏览器合规版主脚本（所有受限能力仅在 unlock 点击内解锁）
+  功能：倒计时（时区精确）、多曲目播放、audio-reactive 动画、文字烟花（伊犁）、海报生成与分享
+  保存为 index.html 并部署到 HTTPS（如 GitHub Pages）以获得最佳兼容性
+   ============================ */
+
+const dbgBox = document.getElementById('debugBox');
+function dbg(msg){ dbgBox.innerHTML += (new Date()).toLocaleTimeString() + ' — ' + msg + '<br>'; dbgBox.scrollTop = dbgBox.scrollHeight; }
+
+/* Elements */
+const unlockOverlay = document.getElementById('unlockOverlay');
+const unlockBtn = document.getElementById('unlockBtn');
+const player = document.getElementById('player');
+const playPause = document.getElementById('playPause');
+const nextBtn = document.getElementById('next');
+const vol = document.getElementById('vol');
+const sensitivity = document.getElementById('sensitivity');
+const tzSel = document.getElementById('tz');
+const refreshBtn = document.getElementById('refresh');
+const countEl = document.getElementById('count');
+const subEl = document.getElementById('sub');
+const ringBtn = document.getElementById('ringBtn');
+const heartBtn = document.getElementById('heartBtn');
+const textBtn = document.getElementById('textBtn');
+const cityInput = document.getElementById('cityName');
+const fullscreenBtn = document.getElementById('fullscreen');
+const projectionBtn = document.getElementById('projection');
+const savePosterBtn = document.getElementById('savePoster');
+
+/* 5 首已验证 Pixabay 直链（可替换） */
+const tracks = [
+  {title:'Happy Rock Background — White_Records', src:'https://cdn.pixabay.com/download/audio/2023/02/10/audio_8aaf8f2ba1.mp3'},
+  {title:'Upbeat Celebration — HitsLab', src:'https://cdn.pixabay.com/download/audio/2021/07/24/audio_2e2d5d2796.mp3'},
+  {title:'Ambient Uplift — SigmaMusicArt', src:'https://cdn.pixabay.com/download/audio/2022/04/03/audio_efb1e4e35b.mp3'},
+  {title:'Future Dance Beat — AlexGrohl', src:'https://cdn.pixabay.com/download/audio/2022/05/15/audio_39f85b3d28.mp3'},
+  {title:'Epic Celebration — DesiFreeMusic', src:'https://cdn.pixabay.com/download/audio/2022/01/18/audio_29eb2d4f70.mp3'}
+];
+let trackIdx = 0;
+vol.addEventListener('input', ()=> player.volume = Number(vol.value));
+player.volume = Number(vol.value);
+
+/* Audio analysis objects — only created after unlock */
+let audioCtx = null, analyser = null, sourceNode = null, dataArray = null, bufferLength = 0;
+
+/* Canvas / FX setup */
+const canvas = document.getElementById('fx');
+const ctx = canvas.getContext('2d');
+const mask = document.getElementById('textMask');
+const mctx = mask.getContext('2d');
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; mask.width = innerWidth; mask.height = innerHeight; }
+addEventListener('resize', resize); resize();
+
+/* Particles */
+let sparks = [], confetti = [], textParticles = [];
+function rand(min,max){ return Math.random()*(max-min)+min; }
+
+/* ====== Timezone target calculation (binary search) ====== */
+function formatParts(ts,tz){
+  const fmt = new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const parts = {}; fmt.formatToParts(new Date(ts)).forEach(p=>{ if(p.type!=='literal') parts[p.type]=p.value; });
+  return parts;
+}
+function findUtcForLocalMidnight(year,tz){
+  let lo = Date.UTC(year,0,1)-86400000, hi = Date.UTC(year,0,1)+86400000;
+  for(let i=0;i<60;i++){
+    const mid = Math.floor((lo+hi)/2);
+    const p = formatParts(mid,tz);
+    if(+p.year===year && +p.month===1 && +p.day===1 && +p.hour===0) hi = mid;
+    else {
+      const localNum = Number(p.year)*1000000 + Number(p.month)*10000 + Number(p.day)*100 + Number(p.hour);
+      const targetNum = year*1000000 + 10100;
+      if(localNum < targetNum) lo = mid; else hi = mid;
+    }
+  }
+  return hi;
+}
+let targetMs = (()=>{ const p = formatParts(Date.now(), tzSel.value); const curYear = Number(p.year); return findUtcForLocalMidnight(curYear+1, tzSel.value); })();
+function updateTargetForTZ(tz){ const p = formatParts(Date.now(), tz); const curYear = Number(p.year); targetMs = findUtcForLocalMidnight(curYear+1, tz); subEl.textContent = `目标：${curYear+1}-01-01 00:00:00 (${tz})`; }
+refreshBtn.addEventListener('click', ()=> updateTargetForTZ(tzSel.value));
+tzSel.addEventListener('change', ()=> updateTargetForTZ(tzSel.value));
+
+/* ====== Audio-safe initialization (called inside unlock click) ====== */
+function setupAudioAnalysis(){
+  if(audioCtx) return;
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+    sourceNode = audioCtx.createMediaElementSource(player);
+    sourceNode.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    dbg('AudioContext 已初始化');
+  }catch(e){
+    dbg('AudioContext 初始化失败: ' + e.message);
+  }
+}
+
+/* ====== load track & playback helpers ====== */
+function loadTrack(i){
+  trackIdx = (i + tracks.length) % tracks.length;
+  player.src = tracks[trackIdx].src;
+  player.load();
+  dbg('加载：' + tracks[trackIdx].title);
+}
+function playCurrent(){ player.play().then(()=> dbg('播放开始')).catch(e=> dbg('play error: '+e.message)); }
+function pauseCurrent(){ player.pause(); dbg('播放已暂停'); }
+function nextTrack(){ loadTrack(trackIdx+1); playCurrent(); }
+
+/* safe event handlers */
+playPause.addEventListener('click', ()=>{
+  if(player.paused) playCurrent(); else pauseCurrent();
+});
+nextBtn.addEventListener('click', ()=> nextTrack());
+document.getElementById('refresh').addEventListener('click', ()=> updateTargetForTZ(tzSel.value));
+
+/* ====== Countdown (runs always; not blocked by audio) ====== */
+function pad(n){ return String(n).padStart(2,'0'); }
+let lastSec = null;
+setInterval(()=>{
+  const now = Date.now();
+  let diff = Math.max(0, targetMs - now);
+  let days = Math.floor(diff/86400000); diff -= days*86400000;
+  const hours = Math.floor(diff/3600000); diff -= hours*3600000;
+  const minutes = Math.floor(diff/60000); diff -= minutes*60000;
+  const seconds = Math.floor(diff/1000);
+  countEl.textContent = (days? (days+'天 ') : '') + pad(hours)+':'+pad(minutes)+':'+pad(seconds);
+  if(targetMs - now <= 10000){
+    const secNow = Math.ceil((targetMs - now)/1000);
+    if(secNow !== lastSec){
+      lastSec = secNow;
+      rampVolume(Math.min(1, Number(vol.value)*1.6), 200);
+      spawnBurst(true);
+    }
+  }
+  if(targetMs - now <= 0){
+    countEl.textContent = '🎉 新年快乐！';
+    subEl.textContent = '中国 · 新疆 · 伊犁';
+    launchYiliFirework();
+    startCelebration();
+  }
+},250);
+
+/* ====== Particles / FX ====== */
+function spawnBurst(big=false, x=null, y=null){
+  const cx = x ?? rand(canvas.width*0.2, canvas.width*0.8);
+  const cy = y ?? rand(canvas.height*0.12, canvas.height*0.45);
+  const hue = Math.floor(rand(0,360));
+  const count = big? Math.floor(rand(60,120)) : Math.floor(rand(18,44));
+  for(let i=0;i<count;i++){
+    const angle = rand(0,Math.PI*2); const speed = rand(big?160:60, big?420:260);
+    sparks.push({
+      x:cx,y:cy,vx:Math.cos(angle)*speed/60,vy:Math.sin(angle)*speed/60,life:rand(0.9,2.6),age:0,
+      r:rand(1.2,3.8), color:`hsl(${hue+rand(-40,40)},90%,${rand(45,70)}%)`
+    });
+  }
+  for(let i=0;i<Math.floor(rand(6,16));i++){
+    confetti.push({
+      x:cx+rand(-30,30), y:cy+rand(-30,30),
+      vx: rand(-30,30)/10, vy: rand(-10,20)/10,
+      life: rand(2,4), rot: rand(0,Math.PI*2), vr: rand(-0.12,0.12),
+      w: rand(6,12), h: rand(10,18), color: `hsl(${rand(0,360)},80%,${rand(40,70)}%)`
+    });
+  }
+}
+
+function spawnRingPattern(){ const cx=canvas.width/2, cy=canvas.height/3, radius=140, pts=90; for(let i=0;i<pts;i++){ const ang=(i/pts)*Math.PI*2; spawnBurst(false, cx+Math.cos(ang)*radius, cy+Math.sin(ang)*radius); } }
+function spawnHeartPattern(){ const cx=canvas.width/2, cy=canvas.height/3; for(let t=0;t<Math.PI*2;t+=0.08){ const xx=16*Math.pow(Math.sin(t),3); const yy=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t); spawnBurst(false, cx+xx*12, cy-yy*12); } }
+
+/* ====== Yili text particle generation & launch ====== */
+function createTextParticles(text){
+  const w = 720, h = 240;
+  mask.width = w; mask.height = h;
+  mctx.clearRect(0,0,w,h);
+  mctx.fillStyle = '#fff';
+  mctx.font = 'bold 80px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif';
+  mctx.textAlign = 'center'; mctx.textBaseline = 'middle';
+  mctx.fillText(text, w/2, h/2);
+  const img = mctx.getImageData(0,0,w,h).data;
+  const particles = []; const step = 6;
+  for(let y=0;y<h;y+=step){
+    for(let x=0;x<w;x+=step){
+      const idx=(y*w+x)*4; if(img[idx+3] > 128 && Math.random() < 0.6){
+        particles.push({ x: Math.random()*canvas.width, y: canvas.height + Math.random()*300, tx: x + canvas.width/2 - w/2, ty: y + canvas.height/2 - h/2, age:0 });
+      }
+    }
+  }
+  return particles;
+}
+function launchYiliFirework(){
+  textParticles = createTextParticles('中国·新疆·伊犁');
+  dbg('伊犁文字烟花粒子数: ' + textParticles.length);
+  setTimeout(()=>{ for(let i=0;i<Math.floor(textParticles.length/6);i++){ const p=textParticles[Math.floor(Math.random()*textParticles.length)]; spawnBurst(true, p.tx + rand(-30,30), p.ty + rand(-30,30)); } }, 2600);
+}
+
+/* ====== Animation loop (audio-reactive background if analyser present) ====== */
+let last = performance.now();
+function render(now){
+  const dt = Math.min(0.06, (now - last)/1000); last = now;
+  // background
+  let intensity = 0;
+  if(analyser && dataArray){
+    analyser.getByteFrequencyData(dataArray);
+    let bass=0; const len = Math.floor(bufferLength * 0.12);
+    for(let i=0;i<len;i++) bass += dataArray[i];
+    intensity = Math.min(1, bass / (len*255) * Number(sensitivity.value));
+  }
+  const g = ctx.createLinearGradient(0,0,0,canvas.height); g.addColorStop(0, `rgba(6,12,28,${0.4 + intensity*0.3})`); g.addColorStop(1, `rgba(2,6,12,${0.8})`);
+  ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // update sparks
+  for(let i=sparks.length-1;i>=0;i--){
+    const p=sparks[i]; p.vy += 0.14 * (1 + intensity*0.6); p.vx *= 0.997; p.vy *= 0.997; p.x += p.vx; p.y += p.vy; p.age += dt;
+    const t = 1 - p.age / p.life;
+    if(p.age >= p.life || p.y > canvas.height + 60) sparks.splice(i,1);
+    else {
+      ctx.globalAlpha = Math.max(0, t);
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r * Math.max(0.3, t), 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = Math.max(0, t*0.6); ctx.strokeStyle = p.color; ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x - p.vx*6, p.y - p.vy*6); ctx.stroke();
+    }
+  }
+  // confetti
+  for(let i=confetti.length-1;i>=0;i--){
+    const f = confetti[i]; f.vy += 0.04; f.x += f.vx; f.y += f.vy; f.rot += f.vr; f.life -= dt;
+    if(f.life <= 0 || f.y > canvas.height + 80) confetti.splice(i,1);
+    else { ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.rot); ctx.fillStyle=f.color; ctx.fillRect(-f.w/2,-f.h/2,f.w,f.h); ctx.restore(); }
+  }
+  // text particles forming
+  if(textParticles.length){
+    for(let i=0;i<textParticles.length;i++){
+      const p = textParticles[i];
+      p.x += (p.tx - p.x) * 0.08; p.y += (p.ty - p.y) * 0.08;
+      ctx.fillStyle = '#ffd54a'; ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2); ctx.fill();
+    }
+  }
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+
+/* ====== celebration control ====== */
+let celebrationTimer = null;
+function startCelebration(){
+  if(celebrationTimer) return;
+  celebrationTimer = setInterval(()=>{
+    for(let i=0;i<Math.floor(rand(1,4));i++) spawnBurst(Math.random()>0.6);
+    if(Math.random()<0.6) for(let j=0;j<Math.floor(rand(6,14));j++) confetti.push({ x: rand(0,canvas.width), y:-10, vx:rand(-30,30)/10, vy:rand(20,120)/20, life:rand(2.2,4.2), rot:rand(0,Math.PI*2), vr:rand(-0.12,0.12), w:rand(6,12), h:rand(10,18), color:`hsl(${rand(0,360)},80%,${rand(40,70)}%)`});
+  }, 900);
+}
+
+/* ====== volume ramp helper ====== */
+let volumeRampTimer = null;
+function rampVolume(target, ms=400){
+  if(volumeRampTimer) clearInterval(volumeRampTimer);
+  const start = player.volume; const steps = Math.max(6, Math.floor(ms/50)); let i=0;
+  volumeRampTimer = setInterval(()=>{ i++; player.volume = start + (target-start)*(i/steps); if(i>=steps){ clearInterval(volumeRampTimer); volumeRampTimer=null; } }, ms/steps);
+}
+
+/* ====== Poster generation & share (works on modern mobiles) ====== */
+async function generatePosterBlob(){
+  const w=1080,h=1920;
+  const c2 = document.createElement('canvas'); c2.width=w; c2.height=h; const g = c2.getContext('2d');
+  // bg gradient
+  const gg = g.createLinearGradient(0,0,0,h); gg.addColorStop(0,'#07132a'); gg.addColorStop(1,'#000814'); g.fillStyle = gg; g.fillRect(0,0,w,h);
+  // sprinkled dots
+  for(let i=0;i<320;i++){ g.fillStyle = `hsla(${Math.floor(Math.random()*360)},90%,${rand(45,75)}%,${Math.random()*0.9})`; g.beginPath(); g.arc(Math.random()*w, Math.random()*h*0.52, Math.random()*6,0,Math.PI*2); g.fill(); }
+  g.fillStyle = '#ffd54a'; g.font = 'bold 140px sans-serif'; g.textAlign='center'; g.fillText('新年快乐', w/2, 760);
+  const cityStr = (cityInput.value.trim() || '伊犁'); g.font='48px sans-serif'; g.fillStyle='#fff'; g.fillText(`${cityStr} · ${new Date().getFullYear()+1}`, w/2, 860);
+  g.globalAlpha = 0.6; g.font='20px sans-serif'; g.fillText('Made with ♥ by PartyBot', w-240, h-60);
+  return new Promise(res => c2.toBlob(res,'image/png'));
+}
+
+async function sharePoster(blob){
+  try{
+    if(navigator.canShare && navigator.canShare({ files: [new File([blob], '祝福.png', {type:'image/png'})] })){
+      await navigator.share({ files: [new File([blob], '祝福.png', {type:'image/png'})], title:'新年快乐', text:'中国 · 新疆 · 伊犁' }); dbg('系统分享呼出'); return;
+    }
+  }catch(e){ dbg('系统分享失败: '+e.message); }
+  // fallback: download
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = '新年祝福.png'; a.click(); dbg('已下载海报（作为分享兜底）');
+}
+savePosterBtn.addEventListener('click', async ()=>{ const blob = await generatePosterBlob(); await sharePoster(blob); });
+
+/* ====== Patterns control bindings ====== */
+ringBtn.addEventListener('click', ()=> spawnRingPattern());
+heartBtn.addEventListener('click', ()=> spawnHeartPattern());
+textBtn.addEventListener('click', ()=> launchYiliFirework());
+fullscreenBtn.addEventListener('click', async ()=>{ try{ if(!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); } catch(e){ dbg('全屏失败:'+e.message); }});
+projectionBtn.addEventListener('click', ()=>{ document.body.classList.toggle('projection'); document.getElementById('topControls').classList.toggle('ui-hidden'); document.getElementById('miniControls').classList.toggle('ui-hidden'); });
+
+/* ====== Unlock flow: MUST be triggered by user click (all restricted actions executed here) ====== */
+unlockBtn.addEventListener('click', async ()=> {
+  try{
+    // load first track and play (user gesture context)
+    loadTrack(0);
+    player.muted = false;
+    await player.play();
+    dbg('用户点击解锁：播放开始');
+    // request fullscreen (user gesture)
+    try{ if(document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen(); dbg('已进入全屏'); }catch(e){ dbg('全屏请求失败:'+e.message); }
+    // create AudioContext & analyser now that gesture happened
+    setupAudioAnalysis();
+    // hide overlay
+    unlockOverlay.style.display = 'none';
+    // start celebration loops after a short delay if near time
+    dbg('派对已解锁，动画与节奏将激活');
+  }catch(e){
+    dbg('解锁失败或播放被阻止: '+ (e && e.message));
+    alert('浏览器阻止自动播放，请再次点击页面的"进入派对"按钮以允许播放。');
+  }
+});
+
+/* ====== initial load ====== */
+loadTrack(0);
+dbg('页面就绪，等待用户点击“进入派对”以解锁受限功能（音频/全屏/节奏分析）');
+
+</script>
+</body>
+</html>
