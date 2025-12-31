@@ -3,44 +3,35 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>跨年终极版 · 伊犁纪念（合规版）</title>
-<meta name="description" content="跨年倒计时 · 中国·新疆·伊犁 特别版 — 浏览器合规版（须点击解锁）" />
+<title>跨年·伊犁纪念派对（节奏安全版）</title>
+<meta name="description" content="跨年倒计时 · 中国·新疆·伊犁 特别版 — 节奏安全（音频降级自动回退）" />
 <style>
-  :root{
-    --bg1:#020316; --bg2:#07132a; --accent:#ffd54a; --muted:#9fb0d6;
-  }
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto;overflow:hidden}
-  #stage{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-  h1{margin:0;font-size:28px}
-  #count{font-size:48px;color:var(--accent);margin:8px 0}
-  #sub{font-size:14px;color:var(--muted);margin-bottom:8px}
-  .controls{position:absolute;top:10px;left:10px;z-index:150;display:flex;flex-direction:column;gap:8px}
-  .row{display:flex;gap:8px;align-items:center}
-  .select,button,input{border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff;padding:8px 10px}
-  #miniControls{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:150;display:flex;gap:8px}
-  canvas{position:fixed;inset:0;z-index:20;pointer-events:none} /* allow clicks through */
-  #unlockOverlay{
-    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999;
-    background:linear-gradient(0deg, rgba(0,0,0,0.6), rgba(0,0,0,0.35));
-  }
-  #unlockBtn{
-    padding:18px 28px;border-radius:14px;border:none;background:var(--accent);color:#081026;font-weight:800;font-size:18px;
-  }
-  .portraitNotice{
-    display:none;
-    position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.92);color:#fff;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:20px;
-  }
-  .watermark{position:absolute;right:12px;bottom:12px;font-size:12px;color:rgba(255,255,255,0.28);z-index:160}
-  .debug{position:fixed;left:8px;right:8px;bottom:8px;max-height:140px;overflow:auto;background:rgba(0,0,0,0.45);padding:6px;border-radius:8px;font-size:12px;color:#fff;z-index:999}
-  @media (orientation:portrait){
-    .portraitNotice{display:flex}
-  }
-  @media(max-width:900px){ #count{font-size:36px} h1{font-size:22px} }
+:root{
+  --bg1:#020316; --bg2:#07132a; --accent:#ffd54a; --muted:#9fb0d6;
+}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto;overflow:hidden}
+#app{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.controls{position:absolute;top:10px;left:10px;z-index:160;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.row{display:flex;gap:8px;align-items:center}
+.select,button,input{border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff;padding:8px 10px}
+.small{font-size:13px;color:var(--muted)}
+#title{font-size:34px;margin:0}
+#count{font-size:56px;color:var(--accent);margin:8px 0;letter-spacing:1px}
+#sub{font-size:16px;color:var(--muted);margin-bottom:8px}
+#miniControls{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:150;display:flex;gap:8px}
+canvas#fx, canvas#textMask{position:fixed;inset:0;display:block;z-index:20;pointer-events:none}
+.watermark{position:absolute;right:12px;bottom:12px;font-size:12px;color:rgba(255,255,255,0.28);z-index:170}
+.debug{position:fixed;left:8px;right:8px;bottom:8px;max-height:140px;overflow:auto;background:rgba(0,0,0,0.45);padding:6px;border-radius:8px;font-size:12px;color:#fff;z-index:999}
+#unlockOverlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999;background:linear-gradient(0deg, rgba(0,0,0,0.6), rgba(0,0,0,0.35))}
+#unlockBtn{padding:18px 28px;border-radius:14px;border:none;background:var(--accent);color:#081026;font-weight:700;font-size:18px}
+.portraitNotice{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.92);color:#fff;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:20px}
+@media (orientation:portrait){ .portraitNotice{display:flex} }
+@media(max-width:900px){ #title{font-size:28px} #count{font-size:48px} }
 </style>
 </head>
 <body>
-<div id="stage">
-  <div class="controls" id="topControls" style="z-index:130">
+<div id="app">
+  <div class="controls" id="topControls">
     <div class="row">
       <label class="small">城市：</label>
       <select id="tz" class="select">
@@ -76,7 +67,7 @@
   <div id="count">加载中…</div>
   <div id="sub">先点击下方「进入派对」解锁音频与全屏，之后功能完全可用</div>
 
-  <div id="miniControls" style="z-index:130">
+  <div id="miniControls">
     <button id="ringBtn" class="select">环形</button>
     <button id="heartBtn" class="select">心形</button>
     <input id="cityName" class="select" placeholder="城市名（用于海报/文字）" style="min-width:160px">
@@ -105,23 +96,17 @@
 </div>
 
 <script>
-/* ============================
-  浏览器合规版主脚本（所有受限能力仅在 unlock 点击内解锁）
-  功能：倒计时（时区精确）、多曲目播放、audio-reactive 动画、文字烟花（伊犁）、海报生成与分享
-  保存为 index.html 并部署到 HTTPS（如 GitHub Pages）以获得最佳兼容性
-   ============================ */
-
+/* ========= 全局工具与元素 ========= */
 const dbgBox = document.getElementById('debugBox');
 function dbg(msg){ dbgBox.innerHTML += (new Date()).toLocaleTimeString() + ' — ' + msg + '<br>'; dbgBox.scrollTop = dbgBox.scrollHeight; }
 
-/* Elements */
 const unlockOverlay = document.getElementById('unlockOverlay');
 const unlockBtn = document.getElementById('unlockBtn');
 const player = document.getElementById('player');
 const playPause = document.getElementById('playPause');
 const nextBtn = document.getElementById('next');
 const vol = document.getElementById('vol');
-const sensitivity = document.getElementById('sensitivity');
+const sensitivityEl = document.getElementById('sensitivity');
 const tzSel = document.getElementById('tz');
 const refreshBtn = document.getElementById('refresh');
 const countEl = document.getElementById('count');
@@ -134,43 +119,53 @@ const fullscreenBtn = document.getElementById('fullscreen');
 const projectionBtn = document.getElementById('projection');
 const savePosterBtn = document.getElementById('savePoster');
 
-/* 5 首已验证 Pixabay 直链（可替换） */
-const tracks = [
-  {title:'Happy Rock Background — White_Records', src:'https://cdn.pixabay.com/download/audio/2023/02/10/audio_8aaf8f2ba1.mp3'},
-  {title:'Upbeat Celebration — HitsLab', src:'https://cdn.pixabay.com/download/audio/2021/07/24/audio_2e2d5d2796.mp3'},
-  {title:'Ambient Uplift — SigmaMusicArt', src:'https://cdn.pixabay.com/download/audio/2022/04/03/audio_efb1e4e35b.mp3'},
-  {title:'Future Dance Beat — AlexGrohl', src:'https://cdn.pixabay.com/download/audio/2022/05/15/audio_39f85b3d28.mp3'},
-  {title:'Epic Celebration — DesiFreeMusic', src:'https://cdn.pixabay.com/download/audio/2022/01/18/audio_29eb2d4f70.mp3'}
-];
-let trackIdx = 0;
 vol.addEventListener('input', ()=> player.volume = Number(vol.value));
 player.volume = Number(vol.value);
 
-/* Audio analysis objects — only created after unlock */
-let audioCtx = null, analyser = null, sourceNode = null, dataArray = null, bufferLength = 0;
+/* ========= 曲目（示例 Pixabay 链接，可换本地 music/ 路径） ========= */
+const tracks = [
+  {title:'Happy Rock — White_Records', src:'https://cdn.pixabay.com/download/audio/2023/02/10/audio_8aaf8f2ba1.mp3'},
+  {title:'Upbeat Celebration — HitsLab', src:'https://cdn.pixabay.com/download/audio/2021/07/24/audio_2e2d5d2796.mp3'},
+  {title:'Ambient Uplift — SigmaMusicArt', src:'https://cdn.pixabay.com/download/audio/2022/04/03/audio_efb1e4e35b.mp3'},
+  {title:'Future Dance — AlexGrohl', src:'https://cdn.pixabay.com/download/audio/2022/05/15/audio_39f85b3d28.mp3'},
+  {title:'Epic Celebration — DesiFreeMusic', src:'https://cdn.pixabay.com/download/audio/2022/01/18/audio_29eb2d4f70.mp3'}
+];
+let trackIdx = 0;
 
-/* Canvas / FX setup */
-const canvas = document.getElementById('fx');
-const ctx = canvas.getContext('2d');
-const mask = document.getElementById('textMask');
-const mctx = mask.getContext('2d');
-function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; mask.width = innerWidth; mask.height = innerHeight; }
-addEventListener('resize', resize); resize();
+/* ========= Audio / Analyser (only created after user unlock) ========= */
+let audioCtx = null, analyser = null, dataArray = null, bufferLength = 0, sourceNode = null;
+let audioInitialized = false; // whether analyser & context ready
+let audioEnabled = false;     // whether audio is actually playing
 
-/* Particles */
-let sparks = [], confetti = [], textParticles = [];
-function rand(min,max){ return Math.random()*(max-min)+min; }
+function setupAudioAnalysis(){
+  if(audioInitialized) return;
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+    sourceNode = audioCtx.createMediaElementSource(player);
+    sourceNode.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    audioInitialized = true;
+    dbg('AudioContext & analyser 已初始化');
+  }catch(e){
+    dbg('AudioContext 初始化失败: '+e.message);
+    audioInitialized = false;
+  }
+}
 
-/* ====== Timezone target calculation (binary search) ====== */
+/* ========= Timezone / target computation ========= */
 function formatParts(ts,tz){
-  const fmt = new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const parts = {}; fmt.formatToParts(new Date(ts)).forEach(p=>{ if(p.type!=='literal') parts[p.type]=p.value; });
+  const fmt=new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const parts={}; fmt.formatToParts(new Date(ts)).forEach(p=>{ if(p.type!=='literal') parts[p.type]=p.value; });
   return parts;
 }
 function findUtcForLocalMidnight(year,tz){
   let lo = Date.UTC(year,0,1)-86400000, hi = Date.UTC(year,0,1)+86400000;
   for(let i=0;i<60;i++){
-    const mid = Math.floor((lo+hi)/2);
+    const mid=Math.floor((lo+hi)/2);
     const p = formatParts(mid,tz);
     if(+p.year===year && +p.month===1 && +p.day===1 && +p.hour===0) hi = mid;
     else {
@@ -181,64 +176,49 @@ function findUtcForLocalMidnight(year,tz){
   }
   return hi;
 }
-let targetMs = (()=>{ const p = formatParts(Date.now(), tzSel.value); const curYear = Number(p.year); return findUtcForLocalMidnight(curYear+1, tzSel.value); })();
+let targetMs = (()=>{
+  const p = formatParts(Date.now(), tzSel.value);
+  const curYear = Number(p.year);
+  return findUtcForLocalMidnight(curYear+1, tzSel.value);
+})();
 function updateTargetForTZ(tz){ const p = formatParts(Date.now(), tz); const curYear = Number(p.year); targetMs = findUtcForLocalMidnight(curYear+1, tz); subEl.textContent = `目标：${curYear+1}-01-01 00:00:00 (${tz})`; }
 refreshBtn.addEventListener('click', ()=> updateTargetForTZ(tzSel.value));
 tzSel.addEventListener('change', ()=> updateTargetForTZ(tzSel.value));
 
-/* ====== Audio-safe initialization (called inside unlock click) ====== */
-function setupAudioAnalysis(){
-  if(audioCtx) return;
-  try{
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 2048;
-    bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-    sourceNode = audioCtx.createMediaElementSource(player);
-    sourceNode.connect(analyser);
-    analyser.connect(audioCtx.destination);
-    dbg('AudioContext 已初始化');
-  }catch(e){
-    dbg('AudioContext 初始化失败: ' + e.message);
-  }
+/* ========= Load / Play helpers ========= */
+function loadTrack(i){ trackIdx = (i+tracks.length)%tracks.length; player.src = tracks[trackIdx].src; player.load(); dbg('加载曲目: '+tracks[trackIdx].title); }
+function playCurrent(){
+  // start playing; may be blocked by browser if not in user gesture
+  player.play().then(()=>{ audioEnabled = true; dbg('播放开始'); }).catch(e=>{ audioEnabled = false; dbg('播放被阻止或失败: '+ (e && e.message)); });
 }
+function pauseCurrent(){ player.pause(); audioEnabled=false; dbg('播放已暂停'); }
+function nextTrack(){ loadTrack(trackIdx+1); if(audioEnabled) playCurrent(); }
 
-/* ====== load track & playback helpers ====== */
-function loadTrack(i){
-  trackIdx = (i + tracks.length) % tracks.length;
-  player.src = tracks[trackIdx].src;
-  player.load();
-  dbg('加载：' + tracks[trackIdx].title);
-}
-function playCurrent(){ player.play().then(()=> dbg('播放开始')).catch(e=> dbg('play error: '+e.message)); }
-function pauseCurrent(){ player.pause(); dbg('播放已暂停'); }
-function nextTrack(){ loadTrack(trackIdx+1); playCurrent(); }
-
-/* safe event handlers */
-playPause.addEventListener('click', ()=>{
-  if(player.paused) playCurrent(); else pauseCurrent();
-});
+/* safe play/pause binding */
+playPause.addEventListener('click', ()=>{ if(player.paused) playCurrent(); else pauseCurrent(); });
 nextBtn.addEventListener('click', ()=> nextTrack());
-document.getElementById('refresh').addEventListener('click', ()=> updateTargetForTZ(tzSel.value));
 
-/* ====== Countdown (runs always; not blocked by audio) ====== */
+player.addEventListener('error', ()=> dbg('audio element 报错（资源加载/格式问题）'));
+player.addEventListener('canplay', ()=> dbg('audio canplay event'));
+
+/* ========= Countdown (decoupled from audio) ========= */
 function pad(n){ return String(n).padStart(2,'0'); }
 let lastSec = null;
 setInterval(()=>{
   const now = Date.now();
   let diff = Math.max(0, targetMs - now);
-  let days = Math.floor(diff/86400000); diff -= days*86400000;
-  const hours = Math.floor(diff/3600000); diff -= hours*3600000;
-  const minutes = Math.floor(diff/60000); diff -= minutes*60000;
-  const seconds = Math.floor(diff/1000);
-  countEl.textContent = (days? (days+'天 ') : '') + pad(hours)+':'+pad(minutes)+':'+pad(seconds);
+  let days = Math.floor(diff / 86400000); diff -= days*86400000;
+  let hours = Math.floor(diff/3600000); diff -= hours*3600000;
+  let minutes = Math.floor(diff/60000); diff -= minutes*60000;
+  let seconds = Math.floor(diff/1000);
+  countEl.textContent = (days>0? days+'天 ':'') + pad(hours)+':'+pad(minutes)+':'+pad(seconds);
   if(targetMs - now <= 10000){
-    const secNow = Math.ceil((targetMs - now)/1000);
+    const secNow = Math.ceil((targetMs-now)/1000);
     if(secNow !== lastSec){
       lastSec = secNow;
+      bigCountdownFlash(secNow);
       rampVolume(Math.min(1, Number(vol.value)*1.6), 200);
-      spawnBurst(true);
+      for(let i=0;i<3;i++) spawnBurst(true);
     }
   }
   if(targetMs - now <= 0){
@@ -247,19 +227,34 @@ setInterval(()=>{
     launchYiliFirework();
     startCelebration();
   }
-},250);
+}, 250);
 
-/* ====== Particles / FX ====== */
+/* ========= Canvas FX ========= */
+const canvas = document.getElementById('fx'), ctx = canvas.getContext('2d');
+const mask = document.getElementById('textMask'), mctx = mask.getContext('2d');
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; mask.width = innerWidth; mask.height = innerHeight; }
+addEventListener('resize', resize); resize();
+
+let sparks = [], confetti = [], textParticles = [];
+
+function rand(min,max){ return Math.random()*(max-min)+min; }
+
 function spawnBurst(big=false, x=null, y=null){
   const cx = x ?? rand(canvas.width*0.2, canvas.width*0.8);
   const cy = y ?? rand(canvas.height*0.12, canvas.height*0.45);
   const hue = Math.floor(rand(0,360));
-  const count = big? Math.floor(rand(60,120)) : Math.floor(rand(18,44));
+  const count = big ? Math.floor(rand(60,120)) : Math.floor(rand(18,44));
   for(let i=0;i<count;i++){
-    const angle = rand(0,Math.PI*2); const speed = rand(big?160:60, big?420:260);
+    const angle = rand(0,Math.PI*2);
+    const speed = rand(big?160:60, big?420:260);
     sparks.push({
-      x:cx,y:cy,vx:Math.cos(angle)*speed/60,vy:Math.sin(angle)*speed/60,life:rand(0.9,2.6),age:0,
-      r:rand(1.2,3.8), color:`hsl(${hue+rand(-40,40)},90%,${rand(45,70)}%)`
+      x:cx, y:cy,
+      vx: Math.cos(angle)*speed/60,
+      vy: Math.sin(angle)*speed/60,
+      life: rand(0.9,2.6),
+      age:0,
+      r: rand(1.2,3.8),
+      color: `hsl(${hue+rand(-40,40)},90%,${rand(45,70)}%)`
     });
   }
   for(let i=0;i<Math.floor(rand(6,16));i++){
@@ -272,105 +267,153 @@ function spawnBurst(big=false, x=null, y=null){
   }
 }
 
-function spawnRingPattern(){ const cx=canvas.width/2, cy=canvas.height/3, radius=140, pts=90; for(let i=0;i<pts;i++){ const ang=(i/pts)*Math.PI*2; spawnBurst(false, cx+Math.cos(ang)*radius, cy+Math.sin(ang)*radius); } }
-function spawnHeartPattern(){ const cx=canvas.width/2, cy=canvas.height/3; for(let t=0;t<Math.PI*2;t+=0.08){ const xx=16*Math.pow(Math.sin(t),3); const yy=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t); spawnBurst(false, cx+xx*12, cy-yy*12); } }
+/* ring & heart patterns (unchanged) */
+function spawnRingPattern(){ const cx=canvas.width/2, cy=canvas.height/3, radius=140, points=90; for(let i=0;i<points;i++){ const ang=(i/points)*Math.PI*2; const px=cx+Math.cos(ang)*radius, py=cy+Math.sin(ang)*radius; spawnBurst(false, px, py); } }
+function spawnHeartPattern(){ const cx=canvas.width/2, cy=canvas.height/3; for(let t=0;t<Math.PI*2;t+=0.08){ const xx=16*Math.pow(Math.sin(t),3), yy=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t); spawnBurst(false, cx+xx*12, cy-yy*12); } }
 
-/* ====== Yili text particle generation & launch ====== */
+/* ========= Text particle generation (Yili) ========= */
 function createTextParticles(text){
   const w = 720, h = 240;
-  mask.width = w; mask.height = h;
-  mctx.clearRect(0,0,w,h);
-  mctx.fillStyle = '#fff';
-  mctx.font = 'bold 80px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif';
-  mctx.textAlign = 'center'; mctx.textBaseline = 'middle';
+  mask.width = w; mask.height = h; mctx.clearRect(0,0,w,h);
+  mctx.fillStyle = '#fff'; mctx.font = 'bold 80px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif'; mctx.textAlign='center'; mctx.textBaseline='middle';
   mctx.fillText(text, w/2, h/2);
   const img = mctx.getImageData(0,0,w,h).data;
   const particles = []; const step = 6;
   for(let y=0;y<h;y+=step){
     for(let x=0;x<w;x+=step){
-      const idx=(y*w+x)*4; if(img[idx+3] > 128 && Math.random() < 0.6){
+      const idx = (y*w + x)*4;
+      if(img[idx+3] > 128 && Math.random() < 0.6){
         particles.push({ x: Math.random()*canvas.width, y: canvas.height + Math.random()*300, tx: x + canvas.width/2 - w/2, ty: y + canvas.height/2 - h/2, age:0 });
       }
     }
   }
   return particles;
 }
-function launchYiliFirework(){
-  textParticles = createTextParticles('中国·新疆·伊犁');
-  dbg('伊犁文字烟花粒子数: ' + textParticles.length);
-  setTimeout(()=>{ for(let i=0;i<Math.floor(textParticles.length/6);i++){ const p=textParticles[Math.floor(Math.random()*textParticles.length)]; spawnBurst(true, p.tx + rand(-30,30), p.ty + rand(-30,30)); } }, 2600);
-}
+function launchYiliFirework(){ textParticles = createTextParticles('中国·新疆·伊犁'); dbg('伊犁文字烟花粒子: '+ textParticles.length); setTimeout(()=>{ for(let i=0;i<Math.floor(textParticles.length/6);i++){ const p = textParticles[Math.floor(Math.random()*textParticles.length)]; spawnBurst(true, p.tx + rand(-30,30), p.ty + rand(-30,30)); } }, 2600); }
 
-/* ====== Animation loop (audio-reactive background if analyser present) ====== */
+/* ========= Render loop — 音频安全驱动（关键修改点） ========= */
+/*
+  规则：
+  - 只有当 audioInitialized && audioEnabled && analyser 可用时，使用真实频谱数据驱动动画强度。
+  - 否则使用时间驱动或伪节奏（sin 波 + 随机抖动），保证动画继续但不会依赖音频。
+*/
 let last = performance.now();
 function render(now){
-  const dt = Math.min(0.06, (now - last)/1000); last = now;
-  // background
+  const dt = Math.min(0.06, (now-last)/1000); last = now;
+
+  // compute intensity safely
   let intensity = 0;
-  if(analyser && dataArray){
-    analyser.getByteFrequencyData(dataArray);
-    let bass=0; const len = Math.floor(bufferLength * 0.12);
-    for(let i=0;i<len;i++) bass += dataArray[i];
-    intensity = Math.min(1, bass / (len*255) * Number(sensitivity.value));
+  if(audioInitialized && audioEnabled && analyser && dataArray){
+    try{
+      analyser.getByteFrequencyData(dataArray);
+      // compute "energy" from low bands
+      let bass = 0;
+      const len = Math.max(4, Math.floor(bufferLength * 0.12));
+      for(let i=0;i<len;i++) bass += dataArray[i];
+      bass = bass / (len * 255); // 0..1
+      intensity = Math.min(1, bass * Number(sensitivityEl.value));
+    }catch(e){
+      // if analyser unexpectedly fails, fallback
+      intensity = Math.min(1, (0.5 + 0.5*Math.abs(Math.sin(now/300))) * Number(sensitivityEl.value));
+    }
+  } else {
+    // FALLBACK: time-driven pseudo-beat
+    // Use a sine wave modulated with a small random jitter so it still feels "musical"
+    const t = now/1000;
+    const base = 0.5 + 0.5 * Math.abs(Math.sin(t * 2.0)); // slower pulsing
+    const jitter = (Math.random()-0.5) * 0.08;
+    intensity = Math.max(0, Math.min(1, (base + jitter) * Number(sensitivityEl.value) * 0.6));
   }
-  const g = ctx.createLinearGradient(0,0,0,canvas.height); g.addColorStop(0, `rgba(6,12,28,${0.4 + intensity*0.3})`); g.addColorStop(1, `rgba(2,6,12,${0.8})`);
+
+  // background gradient reacts to intensity (both real and fallback modes)
+  const g = ctx.createLinearGradient(0,0,0,canvas.height);
+  g.addColorStop(0, `rgba(6,12,28,${0.35 + intensity*0.3})`);
+  g.addColorStop(1, `rgba(2,6,12,${0.75 + intensity*0.15})`);
   ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // update sparks
+  // update sparks (unaffected by analyzer — they always animate)
   for(let i=sparks.length-1;i>=0;i--){
-    const p=sparks[i]; p.vy += 0.14 * (1 + intensity*0.6); p.vx *= 0.997; p.vy *= 0.997; p.x += p.vx; p.y += p.vy; p.age += dt;
+    const p = sparks[i];
+    p.vy += 0.14 * (1 + intensity*0.6);
+    p.vx *= 0.997; p.vy *= 0.997;
+    p.x += p.vx; p.y += p.vy; p.age += dt;
     const t = 1 - p.age / p.life;
-    if(p.age >= p.life || p.y > canvas.height + 60) sparks.splice(i,1);
+    if(p.age >= p.life || p.y > canvas.height + 50) sparks.splice(i,1);
     else {
       ctx.globalAlpha = Math.max(0, t);
       ctx.fillStyle = p.color;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.r * Math.max(0.3, t), 0, Math.PI*2); ctx.fill();
-      ctx.globalAlpha = Math.max(0, t*0.6); ctx.strokeStyle = p.color; ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x - p.vx*6, p.y - p.vy*6); ctx.stroke();
+      ctx.globalAlpha = Math.max(0, t*0.6);
+      ctx.strokeStyle = p.color; ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x - p.vx*6, p.y - p.vy*6); ctx.stroke();
     }
   }
+
   // confetti
   for(let i=confetti.length-1;i>=0;i--){
-    const f = confetti[i]; f.vy += 0.04; f.x += f.vx; f.y += f.vy; f.rot += f.vr; f.life -= dt;
-    if(f.life <= 0 || f.y > canvas.height + 80) confetti.splice(i,1);
-    else { ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.rot); ctx.fillStyle=f.color; ctx.fillRect(-f.w/2,-f.h/2,f.w,f.h); ctx.restore(); }
+    const f = confetti[i];
+    f.vy += 0.04; f.x += f.vx; f.y += f.vy; f.rot += f.vr; f.life -= dt;
+    if(f.life <= 0 || f.y > canvas.height + 60) confetti.splice(i,1);
+    else {
+      ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.rot); ctx.fillStyle = f.color; ctx.fillRect(-f.w/2, -f.h/2, f.w, f.h); ctx.restore();
+    }
   }
-  // text particles forming
+
+  // text particles
   if(textParticles.length){
     for(let i=0;i<textParticles.length;i++){
       const p = textParticles[i];
-      p.x += (p.tx - p.x) * 0.08; p.y += (p.ty - p.y) * 0.08;
-      ctx.fillStyle = '#ffd54a'; ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2); ctx.fill();
+      p.x += (p.tx - p.x) * 0.08;
+      p.y += (p.ty - p.y) * 0.08;
+      ctx.fillStyle = '#ffd54a';
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, Math.PI*2); ctx.fill();
     }
   }
+
   requestAnimationFrame(render);
 }
 requestAnimationFrame(render);
 
-/* ====== celebration control ====== */
+/* ========= Last-second flash & celebration (safe) ========= */
+function bigCountdownFlash(sec){
+  countEl.style.transform = 'scale(1.08)';
+  countEl.style.transition = 'transform .18s';
+  setTimeout(()=> countEl.style.transform = '', 200);
+}
+
+let celebrationActive = false;
 let celebrationTimer = null;
 function startCelebration(){
-  if(celebrationTimer) return;
+  if(celebrationActive) return;
+  celebrationActive = true;
   celebrationTimer = setInterval(()=>{
-    for(let i=0;i<Math.floor(rand(1,4));i++) spawnBurst(Math.random()>0.6);
-    if(Math.random()<0.6) for(let j=0;j<Math.floor(rand(6,14));j++) confetti.push({ x: rand(0,canvas.width), y:-10, vx:rand(-30,30)/10, vy:rand(20,120)/20, life:rand(2.2,4.2), rot:rand(0,Math.PI*2), vr:rand(-0.12,0.12), w:rand(6,12), h:rand(10,18), color:`hsl(${rand(0,360)},80%,${rand(40,70)}%)`});
-  }, 900);
+    spawnBurst(Math.random()>0.6);
+    if(Math.random() < 0.6){
+      for(let j=0;j<Math.floor(rand(6,14));j++){
+        confetti.push({ x: rand(0,canvas.width), y: -10, vx: rand(-30,30)/10, vy: rand(20,120)/20, life: rand(2,4), rot: rand(0,Math.PI*2), vr: rand(-0.12,0.12), w: rand(6,12), h: rand(10,18), color: `hsl(${rand(0,360)},80%,${rand(40,70)}%)`});
+      }
+    }
+  }, 700);
 }
 
-/* ====== volume ramp helper ====== */
-let volumeRampTimer = null;
+/* ========= volume ramp helper ========= */
+let rampTimer = null;
 function rampVolume(target, ms=400){
-  if(volumeRampTimer) clearInterval(volumeRampTimer);
-  const start = player.volume; const steps = Math.max(6, Math.floor(ms/50)); let i=0;
-  volumeRampTimer = setInterval(()=>{ i++; player.volume = start + (target-start)*(i/steps); if(i>=steps){ clearInterval(volumeRampTimer); volumeRampTimer=null; } }, ms/steps);
+  if(rampTimer) clearInterval(rampTimer);
+  const start = player.volume, steps = Math.max(6, Math.floor(ms/50));
+  let i=0;
+  rampTimer = setInterval(()=>{ i++; player.volume = start + (target-start)*(i/steps); if(i>=steps){ clearInterval(rampTimer); rampTimer=null; } }, ms/steps);
 }
 
-/* ====== Poster generation & share (works on modern mobiles) ====== */
+/* ========= Poster generation & share (safe) ========= */
+savePosterBtn.addEventListener('click', async ()=>{
+  const blob = await generatePosterBlob();
+  await sharePoster(blob);
+});
+
 async function generatePosterBlob(){
   const w=1080,h=1920;
   const c2 = document.createElement('canvas'); c2.width=w; c2.height=h; const g = c2.getContext('2d');
-  // bg gradient
   const gg = g.createLinearGradient(0,0,0,h); gg.addColorStop(0,'#07132a'); gg.addColorStop(1,'#000814'); g.fillStyle = gg; g.fillRect(0,0,w,h);
-  // sprinkled dots
   for(let i=0;i<320;i++){ g.fillStyle = `hsla(${Math.floor(Math.random()*360)},90%,${rand(45,75)}%,${Math.random()*0.9})`; g.beginPath(); g.arc(Math.random()*w, Math.random()*h*0.52, Math.random()*6,0,Math.PI*2); g.fill(); }
   g.fillStyle = '#ffd54a'; g.font = 'bold 140px sans-serif'; g.textAlign='center'; g.fillText('新年快乐', w/2, 760);
   const cityStr = (cityInput.value.trim() || '伊犁'); g.font='48px sans-serif'; g.fillStyle='#fff'; g.fillText(`${cityStr} · ${new Date().getFullYear()+1}`, w/2, 860);
@@ -381,48 +424,10 @@ async function generatePosterBlob(){
 async function sharePoster(blob){
   try{
     if(navigator.canShare && navigator.canShare({ files: [new File([blob], '祝福.png', {type:'image/png'})] })){
-      await navigator.share({ files: [new File([blob], '祝福.png', {type:'image/png'})], title:'新年快乐', text:'中国 · 新疆 · 伊犁' }); dbg('系统分享呼出'); return;
+      await navigator.share({ files:[new File([blob],'祝福.png',{type:'image/png'})], title:'新年快乐', text:'中国 · 新疆 · 伊犁' });
+      dbg('系统分享呼出');
+      return;
     }
   }catch(e){ dbg('系统分享失败: '+e.message); }
-  // fallback: download
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = '新年祝福.png'; a.click(); dbg('已下载海报（作为分享兜底）');
-}
-savePosterBtn.addEventListener('click', async ()=>{ const blob = await generatePosterBlob(); await sharePoster(blob); });
-
-/* ====== Patterns control bindings ====== */
-ringBtn.addEventListener('click', ()=> spawnRingPattern());
-heartBtn.addEventListener('click', ()=> spawnHeartPattern());
-textBtn.addEventListener('click', ()=> launchYiliFirework());
-fullscreenBtn.addEventListener('click', async ()=>{ try{ if(!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); } catch(e){ dbg('全屏失败:'+e.message); }});
-projectionBtn.addEventListener('click', ()=>{ document.body.classList.toggle('projection'); document.getElementById('topControls').classList.toggle('ui-hidden'); document.getElementById('miniControls').classList.toggle('ui-hidden'); });
-
-/* ====== Unlock flow: MUST be triggered by user click (all restricted actions executed here) ====== */
-unlockBtn.addEventListener('click', async ()=> {
-  try{
-    // load first track and play (user gesture context)
-    loadTrack(0);
-    player.muted = false;
-    await player.play();
-    dbg('用户点击解锁：播放开始');
-    // request fullscreen (user gesture)
-    try{ if(document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen(); dbg('已进入全屏'); }catch(e){ dbg('全屏请求失败:'+e.message); }
-    // create AudioContext & analyser now that gesture happened
-    setupAudioAnalysis();
-    // hide overlay
-    unlockOverlay.style.display = 'none';
-    // start celebration loops after a short delay if near time
-    dbg('派对已解锁，动画与节奏将激活');
-  }catch(e){
-    dbg('解锁失败或播放被阻止: '+ (e && e.message));
-    alert('浏览器阻止自动播放，请再次点击页面的"进入派对"按钮以允许播放。');
-  }
-});
-
-/* ====== initial load ====== */
-loadTrack(0);
-dbg('页面就绪，等待用户点击“进入派对”以解锁受限功能（音频/全屏/节奏分析）');
-
-</script>
-</body>
-</html>
+  const a = document.createElement('a'); a.
